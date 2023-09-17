@@ -102,18 +102,20 @@ class FlakeHeavenApplication(Application):
         for name in list(toml_config.keys()):
             try:
                 option = enforce_keys_from[name]
-                dst = option.config_name
-                if dst == name:
-                    continue
-                if dst is None:
-                    raise ValueError(
-                        f'Unable to parse `{path}`. '
-                        f'Reason: option {option}.config_name not set. '
-                        f'Maybe its not enabled as `parse_from_config`?'  # noqa: C812
-                    )
             except KeyError:
                 continue
-
+            if option.config_name is None:
+                raise ValueError(
+                    f'Unable to parse `{path}`. '
+                    f'Reason: option {option}.config_name not set. '
+                    f"Maybe it's not enabled as `parse_from_config`?"  # noqa: C812
+                )
+            if option.dest and isinstance(option.dest, str):
+                dst = option.dest
+            else:
+                dst = option.config_name
+            if dst == name:
+                continue
             toml_config[dst] = toml_config.pop(name)
         return toml_config
 
